@@ -1,13 +1,17 @@
 # Dca dashboard
 
 ## Steps
-1. Concatenation yfinance to fetch data 
-2. User can select: 
-    - Purchase Amount each time
-    - Frequency (Every k Weeks / Month)
-    - Start From
-    - Accumulate For How Long
-    - Comparison with other financial products
+1. Setup basic webpage structure (footer / page title)
+2. Concatenate the data from Binance and yfinance (fetch history price data)
+3. Design user input layout (amount, frequency, start date)
+4. Calculate the DCA strategy (profit, Earnings yield, Sharpe ratio)
+5. Display the result (chart, table)
+    * Profolio value over time
+    * Asset price chart (標記買入的時間)
+    * 顯示area chart，營利與虧損
+    * 可以用bar chart去顯示盈利天數?
+6. Ranking page (compare the DCA strategy with other financial products)
+7. ML??
 
 ## Expected Financial product
 1. Bitcoin
