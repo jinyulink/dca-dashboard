@@ -12,6 +12,8 @@
     * 可以用bar chart去顯示盈利天數?
 6. Ranking page (compare the DCA strategy with other financial products)
 7. ML??
+8. 可以弄個匯出excel，仿照: tipranks dca。
+9. 弄得高級一點
 
 ## Expected Financial product
 1. Bitcoin
