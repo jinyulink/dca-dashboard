@@ -1,4 +1,6 @@
 import streamlit as st
+from streamlit_echarts import st_echarts
+import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
 from config import asset_map, time_map
@@ -38,6 +40,7 @@ class DCADashboard:
     def calculate(self):
         if self.calculateBtn:
             asset_data = fetchPrice(asset_map[self.asset], time_map[self.startFrom])
+            all_dates = pd.date_range(start=asset_data.index[0], end=asset_data.index[-1], freq='D')
             
             if self.frequency == 'Weekly':
                 purchase_dates = pd.date_range(start=asset_data.index[0], end=asset_data.index[-1], freq='W')
@@ -48,38 +51,35 @@ class DCADashboard:
             elif self.frequency == 'Annually':
                 purchase_dates = pd.date_range(start=asset_data.index[0], end=asset_data.index[-1], freq='A')
             
-            adjusted_purchase_dates = []
-            for date in purchase_dates:
-                while date not in asset_data.index and date <= asset_data.index[-1]:
-                    date += pd.Timedelta(days=1)
-                if date in asset_data.index:
-                    adjusted_purchase_dates.append(date)
-            purchase_dates = adjusted_purchase_dates
+            total_purchase_amount = 0
+            total_invest_usd = 0
+            total_invest_value = np.zeros(len(all_dates))
+            total_asset_value = np.zeros(len(all_dates))
+            net_profit = np.zeros(len(all_dates))
             
-            total_purchase_amount = np.cumsum([self.amount / asset_data.loc[date, 'Close'] for date in purchase_dates]) # Amount of BTC purchased
-            total_invest_usd = np.cumsum([self.amount for _ in purchase_dates]) # Total amount of USD invested
-            total_asset_value = total_purchase_amount * asset_data.loc[purchase_dates, 'Close']
-            # total_asset_value = []
-            # for date in asset_data.index:
-            #     asset_value = np.sum([self.amount / asset_data.loc[date, 'Close'] if date >= d else 0 for d in purchase_dates]) * asset_data.loc[date, 'Close']
-            #     total_asset_value.append(asset_value)
-            net_profit = total_asset_value - np.cumsum([self.amount for _ in purchase_dates])
-            
-            total_invested = round(self.amount * len(purchase_dates), 4)
-            total_value = round(total_asset_value[-1], 4)
-            total_profit = round(net_profit[-1], 4)
+            for i, date in enumerate(all_dates):
+                # 計算當天的購買數量
+                if date in purchase_dates:
+                    total_purchase_amount += self.amount / asset_data.loc[date, 'Close']
+                    total_invest_usd += self.amount
+                
+                # 計算當天的總資產價值和淨利潤
+                total_asset_value[i] = total_purchase_amount * asset_data.loc[date, 'Close']
+                net_profit[i] = total_asset_value[i] - total_invest_usd
+                total_invest_value[i] = total_invest_usd
 
             col1, col2, col3 = st.columns(3)
-            col1.metric("Total Invested", '$' + str(total_invested))
-            col2.metric("Total Value", '$' + str(total_value), str(round(total_value / total_invested - 1, 4) * 100) + '%')
-            col3.metric("Net Profit", '$' + str(total_profit))
+            col1.metric("Total Invested", '$' + str(total_invest_usd))
+            col2.metric("Total Value", '${:.4f}'.format(total_asset_value[-1]), '{:.4f}%'.format((total_asset_value[-1] / total_invest_usd - 1) * 100))
+            col3.metric("Net Profit", '${:.4f}'.format(net_profit[-1])) 
 
-            data = pd.DataFrame({
-                'Total Invested': total_invest_usd, 
-                'Total Value': total_asset_value,
-            }, index=purchase_dates)
-            
-            st.line_chart(data)
+            chart_data = pd.DataFrame({
+                'Total Asset Value': total_asset_value,
+                'Total Invested': total_invest_value
+            }, index=all_dates)
+
+            # Use st.line_chart to display the chart
+            st.line_chart(chart_data)
 
     def display(self):
         st.set_page_config(page_title="DCA Dashboard", page_icon="📈", layout="wide")
@@ -93,5 +93,4 @@ class DCADashboard:
         self.calculate()
 
 if __name__ == '__main__':
-    dashboard = DCADashboard(asset_map, time_map).display()
-        
+    dashboard = DCADashboard(asset_map, time_map).display()      
