@@ -60,7 +60,7 @@ class DCADashboard:
             for i, date in enumerate(all_dates):
                 # 計算當天的購買數量
                 d = date
-                while d not in asset_data.index:
+                while d not in asset_data.index: # 如果該資產當天沒有數據，則往前找最近的一天 eg. 股票沒有周末的數據
                     d -= pd.Timedelta(days=1)
                 price = asset_data.loc[d, 'Close']
                 if date in purchase_dates:
@@ -78,7 +78,7 @@ class DCADashboard:
             col3.metric("Net Profit", '${:.4f}'.format(net_profit[-1])) 
 
             chart_data = pd.DataFrame({
-                'Total Asset Value' + '(' + self.asset + ')': total_asset_value,
+                self.asset: total_asset_value,
                 'Total Invested': total_invest_value
             }, index=all_dates)
 
@@ -97,10 +97,10 @@ class DCADashboard:
                         if date in purchase_dates:
                             purchase_amount += self.amount / price
                         compare_asset_value[j] = purchase_amount * price
-                    chart_data['Total Asset Value' + '(' + i + ')'] = compare_asset_value
+                    chart_data[i] = compare_asset_value
 
             # Use st.line_chart to display the chart
-            st.line_chart(chart_data)
+            st.line_chart(chart_data.iloc[:-1])
 
     def display(self):
         st.set_page_config(page_title="DCA Dashboard", page_icon="📈", layout="wide")
