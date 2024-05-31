@@ -14,4 +14,4 @@ def displayEssential():
         '''
         # &nbsp<img src="https://streamlit.io/images/brand/streamlit-mark-color.png" alt="Streamlit logo" height="10">
     st.markdown(footer,unsafe_allow_html=True)
-    add_logo("https://blog.jinlk.dev/images/avatar.png") # https://discuss.streamlit.io/t/streamlit-sidebar-logo/49735/4
+    # add_logo("https://blog.jinlk.dev/images/avatar.png") # https://discuss.streamlit.io/t/streamlit-sidebar-logo/49735/4
