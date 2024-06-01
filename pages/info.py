@@ -5,7 +5,7 @@ st.set_page_config(page_title="Info", page_icon="📊", layout="wide")
 st.title('Info')
 st.markdown('''
         #### DCA dashboard is a tool to help you track your investment performance of Dollar Cost Averaging (DCA).
-        This website is my final project for a Python programming course. 
+        This website is my final project for a Python programming course (GS-4719B). 
         
         The main purpose of creating this site is to help me calculate which asset's return on investment will be the highest through dollar-cost averaging (DCA). 
         
