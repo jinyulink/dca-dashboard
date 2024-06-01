@@ -56,6 +56,8 @@ class DCADashboard:
             total_asset_value = np.zeros(len(all_dates))
             net_profit = np.zeros(len(all_dates))
 
+            purchase_details = []
+
             for i, date in enumerate(all_dates):
                 d = date
                 while d not in asset_data.index:
@@ -64,13 +66,24 @@ class DCADashboard:
                 if date in purchase_dates:
                     total_purchase_amount += self.amount / price
                     total_invest_usd += self.amount
-
                 total_asset_value[i] = total_purchase_amount * price
-                net_profit[i] = total_asset_value[i] - total_invest_usd
                 total_invest_value[i] = total_invest_usd
+                net_profit[i] = total_asset_value[i] - total_invest_usd
+                return_rate = (total_asset_value[i] / total_invest_usd - 1) * 100 if total_invest_usd != 0 else 0
+
+                if date in purchase_dates:
+                    purchase_details.append({
+                        "Date": date.date(),
+                        "Amount Invested": self.amount,
+                        "Price": price,
+                        "Units Purchased": self.amount / price,
+                        "Total Value": total_asset_value[i],
+                        "Net Profit": net_profit[i],
+                        "Return Rate": return_rate
+                    })
 
             st.markdown(f"""
-                #### Starting from **{self.startFrom}**, investing **${self.amount}** on a **{self.frequency}** basis in **{self.asset}** :
+                #### Starting from **{self.startFrom}**, investing **${self.amount}** on a **{self.frequency}** basis in **{self.asset}**:
             """)
 
             col1, col2, col3 = st.columns(3)
@@ -101,6 +114,7 @@ class DCADashboard:
                             compare_total_purchase_amount += self.amount / price
                             compare_total_invest_usd += self.amount
                         compare_asset_value[j] = compare_total_purchase_amount * price
+                        total_invest_value[j] = compare_total_invest_usd
 
                     chart_data[i] = compare_asset_value
                     return_rates[i] = ((compare_asset_value[-1] / compare_total_invest_usd - 1) * 100)
@@ -112,14 +126,58 @@ class DCADashboard:
             return_rates_df = return_rates_df.sort_values(by='Return Rate', ascending=False)
             return_rates_df['Return Rate'] = return_rates_df['Return Rate'].apply(lambda x: f'{x:.2f}%')
 
-            # Use Plotly to create a bar chart with percentage labels
-            fig = px.bar(return_rates_df, x='Asset', y='Return Rate', text='Return Rate')
-            fig.update_traces(texttemplate='%{text}', textposition='outside')
-            fig.update_layout(title='Return Rates of Different Assets', yaxis_title='Return Rate (%)')
-
             st.line_chart(chart_data.iloc[:-1])
-            
-            st.plotly_chart(fig)
+
+            # Center the bar chart
+            st.markdown("#### Return Rates of Different Assets")
+            fig = px.bar(return_rates_df, x='Asset', y='Return Rate', text='Return Rate', width=800, height=600)
+            fig.update_traces(texttemplate='%{text}', textposition='outside')
+            fig.update_layout(yaxis_title='Return Rate (%)', bargap=0.2)
+            st.plotly_chart(fig, use_container_width=True)
+
+            # Display purchase details in a table with conditional formatting and center it
+            # selected_asset = st.selectbox('Select Asset to View Details', [self.asset] + self.compareWith)
+            selected_asset = self.asset
+            if selected_asset == self.asset:
+                purchase_details_df = pd.DataFrame(purchase_details)
+            else:
+                compare_asset_data = fetchPrice(asset_map[selected_asset], time_map[self.startFrom])
+                compare_purchase_details = []
+                compare_total_purchase_amount = 0
+                compare_total_invest_usd = 0
+                for date in purchase_dates:
+                    d = date
+                    while d not in compare_asset_data.index:
+                        d -= pd.Timedelta(days=1)
+                    price = compare_asset_data.loc[d, 'Close']
+                    compare_total_purchase_amount += self.amount / price
+                    compare_total_invest_usd += self.amount
+                    compare_total_value = compare_total_purchase_amount * price
+                    compare_net_profit = compare_total_value - compare_total_invest_usd
+                    compare_return_rate = (compare_total_value / compare_total_invest_usd - 1) * 100 if compare_total_invest_usd != 0 else 0
+                    compare_purchase_details.append({
+                        "Date": date.date(),
+                        "Amount Invested": self.amount,
+                        "Price": price,
+                        "Units Purchased": self.amount / price,
+                        "Total Value": compare_total_value,
+                        "Net Profit": compare_net_profit,
+                        "Return Rate": compare_return_rate
+                    })
+                purchase_details_df = pd.DataFrame(compare_purchase_details)
+
+            def highlight_positive(v):
+                if v > 0:
+                    return 'color: green'
+                elif v < 0:
+                    return 'color: red'
+                else:
+                    return ''
+
+            styled_df = purchase_details_df.style.applymap(highlight_positive, subset=['Net Profit', 'Return Rate'])
+
+            st.markdown("#### Purchase Details")
+            st.dataframe(styled_df)
 
     def display(self):
         st.set_page_config(page_title="DCA Dashboard", page_icon="📈", layout="wide")
