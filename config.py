@@ -3,8 +3,14 @@ asset_map = {
     'Ethereum': 'ETH-USD',
     'Gold': 'GC=F',
     'S&P500': '^GSPC',
-    'U.S. Treasury Bonds': 'TLT'
+    'U.S. Treasury Bonds': 'TLT',
+    'Apple Inc.': 'AAPL',
+    'Microsoft Corporation': 'MSFT',
+    'Amazon.com Inc.': 'AMZN',
+    'Tesla Inc.': 'TSLA',
+    'Vanguard Total Stock Market ETF': 'VTI'
 }
+
 
 time_map = {
     '3 months ago': 90,
