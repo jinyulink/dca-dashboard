@@ -8,7 +8,8 @@ asset_map = {
     'Microsoft Corporation': 'MSFT',
     'Amazon.com Inc.': 'AMZN',
     'Tesla Inc.': 'TSLA',
-    'Vanguard Total Stock Market ETF': 'VTI'
+    'Vanguard Total Stock Market ETF': 'VTI',
+    'NVIDIA Corporation': 'NVDA' 
 }
 
 
